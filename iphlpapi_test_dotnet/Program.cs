@@ -15,35 +15,37 @@ namespace Iphlpapi
         /// See https://docs.microsoft.com/windows/win32/api/iphlpapi/nf-iphlpapi-gettcptable2.
         /// </remarks>
         [DllImport("iphlpapi.dll")]
-        public static extern int GetTcpTable2(IntPtr tcpTable, ref int sizePointer, bool order); // TODO: ref MIB_TCPTABLE2?
-    }
-
-    static class StatusCode
-    {
-        public const int NoError = 0;
-        public const int ErrorNotSupported = 50;
-        public const int ErrorInvalidParameter = 87;
-        public const int ErrorInsufficientBuffer = 122;
+        public static extern uint GetTcpTable2(IntPtr tcpTable, ref uint sizePointer, bool order); // TODO: ref MIB_TCPTABLE2?
     }
 
     static class Program
     {
         static unsafe int Main(string[] args)
         {
-            int status;
-            int size = 0;
+            uint status;
+            uint size = 0;
 
             // Call for the size
             status = Iphlpapi.GetTcpTable2(IntPtr.Zero, ref size, order: true);
 
             fixed (byte* buffer = new byte[size])
             {
-                status = Iphlpapi.GetTcpTable2((IntPtr)buffer, ref size, order: true);
+                var bufferIntPtr = (IntPtr)buffer;
+                status = Iphlpapi.GetTcpTable2(bufferIntPtr, ref size, order: true);
 
                 switch (status)
                 {
                     case StatusCode.NoError:
-                        Console.WriteLine($"Returned {*(int*)buffer} connections");
+                        var numConnections = *(uint*)bufferIntPtr;
+                        Console.WriteLine($"Found {numConnections} connections");
+
+                        bufferIntPtr += sizeof(uint);
+                        for (int i = 0; i < numConnections; i++)
+                        {
+                            var row = Marshal.PtrToStructure<TcpRow2>(bufferIntPtr);
+                            Console.WriteLine(row.ToString());
+                            bufferIntPtr += sizeof(TcpRow2);
+                        }
                         return 0;
                     case StatusCode.ErrorInsufficientBuffer:
                         Console.Error.WriteLine($"Insufficient buffer: required {size} bytes.");
