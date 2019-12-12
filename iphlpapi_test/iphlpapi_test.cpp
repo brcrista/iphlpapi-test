@@ -50,9 +50,10 @@ void print_tcp_connection(const MIB_TCPROW2& connection, const function<string(D
 int main()
 {
     ULONG status;
-    ULONG buffer_size = 0;
 
+    // Print the table of connections
     // Call for the size
+    ULONG buffer_size = 0;
     status = ::GetTcpTable2(
         nullptr,
         &buffer_size,
@@ -69,7 +70,6 @@ int main()
     switch (status)
     {
     case NO_ERROR:
-        // Print the table of connnections
         tcp_table_ipv4 = reinterpret_cast<PMIB_TCPTABLE2>(buffer);
         cout << "Found " << tcp_table_ipv4->dwNumEntries << " connections:" << endl;
         for (DWORD i = 0; i < tcp_table_ipv4->dwNumEntries; i++)
@@ -98,7 +98,7 @@ int main()
         return 1;
     }
 
-
+    // Print the table of bound ports
     PMIB_TCPTABLE2 tcp_table_bound;
     HANDLE heap = ::GetProcessHeap();
 
@@ -107,7 +107,6 @@ int main()
         heap,
         0);
 
-    // Print the table of bound ports
     if (status == NO_ERROR)
     {
         cout << endl;

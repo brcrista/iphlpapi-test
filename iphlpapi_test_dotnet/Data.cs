@@ -45,8 +45,5 @@ namespace Iphlpapi
         public uint remotePort;
         public uint owningPid;
         public TcpConnectionOffloadState offloadState;
-
-        public override string ToString()
-            => $"Local address: {localAddr}:{localPort} Remote address: {remoteAddr}:{remotePort} State: {state}";
     }
 }
