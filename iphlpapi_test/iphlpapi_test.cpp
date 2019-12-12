@@ -44,7 +44,7 @@ int main()
     ULONG status;
     ULONG buffer_size = 0;
 
-    // Call for size
+    // Call for the size
     status = ::GetTcpTable2(
         nullptr,
         &buffer_size,

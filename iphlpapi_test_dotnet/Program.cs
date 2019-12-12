@@ -15,59 +15,49 @@ namespace Iphlpapi
         /// See https://docs.microsoft.com/windows/win32/api/iphlpapi/nf-iphlpapi-gettcptable2.
         /// </remarks>
         [DllImport("iphlpapi.dll")]
-        public static extern ulong GetTcpTable2(IntPtr tcpTable, ref ulong sizePointer, bool order); // TODO: ref MIB_TCPTABLE2?
+        public static extern int GetTcpTable2(IntPtr tcpTable, ref int sizePointer, bool order); // TODO: ref MIB_TCPTABLE2?
     }
 
     static class StatusCode
     {
-        public const ulong NO_ERROR = 0;
-        public const ulong ERROR_NOT_SUPPORTED = 50;
-        public const ulong ERROR_INVALID_PARAMETER = 87;
-        public const ulong ERROR_INSUFFICIENT_BUFFER = 122;
+        public const int NoError = 0;
+        public const int ErrorNotSupported = 50;
+        public const int ErrorInvalidParameter = 87;
+        public const int ErrorInsufficientBuffer = 122;
     }
 
     static class Program
     {
         static unsafe int Main(string[] args)
         {
-            var size = GetBufferSize();
-            var buffer = new byte[size];
+            int status;
+            int size = 0;
 
-            fixed (byte* pBuffer = buffer)
+            // Call for the size
+            status = Iphlpapi.GetTcpTable2(IntPtr.Zero, ref size, order: true);
+
+            fixed (byte* buffer = new byte[size])
             {
-                ulong status = Iphlpapi.GetTcpTable2((IntPtr)pBuffer, ref size, order: true);
+                status = Iphlpapi.GetTcpTable2((IntPtr)buffer, ref size, order: true);
 
                 switch (status)
                 {
-                    case StatusCode.NO_ERROR:
-                        Console.WriteLine($"Returned {buffer[0]} connections");
+                    case StatusCode.NoError:
+                        Console.WriteLine($"Returned {*(int*)buffer} connections");
                         return 0;
-                    case StatusCode.ERROR_INSUFFICIENT_BUFFER:
+                    case StatusCode.ErrorInsufficientBuffer:
                         Console.Error.WriteLine($"Insufficient buffer: required {size} bytes.");
                         return 1;
-                    case StatusCode.ERROR_INVALID_PARAMETER:
+                    case StatusCode.ErrorInvalidParameter:
                         Console.Error.WriteLine("Could not write to the buffer. Is it null?");
                         return 1;
-                    case StatusCode.ERROR_NOT_SUPPORTED:
+                    case StatusCode.ErrorNotSupported:
                         Console.Error.WriteLine("Not supported on this OS.");
                         return 1;
                     default:
                         Console.Error.WriteLine("An unknown error occurred.");
                         return 1;
                 }
-            }
-        }
-
-        private static unsafe ulong GetBufferSize()
-        {
-            var buffer = new byte[0];
-            ulong size = 0;
-
-            fixed (byte* pBuffer = buffer)
-            {
-                // Call for the size
-                Iphlpapi.GetTcpTable2((IntPtr)pBuffer, ref size, order: true);
-                return size;
             }
         }
     }
