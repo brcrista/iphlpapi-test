@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Win32.SafeHandles;
 
-namespace Iphlpapi
+namespace IphlpapiTest
 {
     /// <summary>
     /// A safe handle for a handle whose object is allocated with <c>HeapAlloc</c>.

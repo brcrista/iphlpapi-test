@@ -1,7 +1,7 @@
 ﻿using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 
-namespace Iphlpapi
+namespace IphlpapiTest
 {
     /// <summary>
     /// Defines the possible TCP offload states for a TCP connection.

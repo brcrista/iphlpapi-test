@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Iphlpapi
+namespace IphlpapiTest
 {
     /// <summary>
     /// Methods from the Win32 heap API.
@@ -100,7 +100,6 @@ namespace Iphlpapi
 
             // Print the table of bound ports
             var boundPortTable = new HeapAllocHandle();
-
             status = IphlpApi.InternalGetBoundTcpEndpointTable(ref boundPortTable, HeapAllocHandle.DangerousGetProcessHeap(), flags: 0);
 
             if (status == StatusCode.NoError)
