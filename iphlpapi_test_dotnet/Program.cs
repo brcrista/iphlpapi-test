@@ -45,7 +45,7 @@ namespace Iphlpapi
         /// Retrieves the table of bound ports.
         /// </summary>
         [DllImport("iphlpapi.dll")]
-        public static extern uint InternalGetBoundTcpEndpointTable(ref IntPtr tcpTable, IntPtr heapHandle, uint flags);
+        public static extern uint InternalGetBoundTcpEndpointTable(ref HeapAllocHandle tcpTable, IntPtr heapHandle, uint flags);
     }
 
     static class Program
@@ -99,23 +99,17 @@ namespace Iphlpapi
             }
 
             // Print the table of bound ports
-            var boundPortTable = IntPtr.Zero;
-            var heap = HeapApi.GetProcessHeap();
-            if (heap == null)
-            {
-                // GetProcessHeap failed. Call GetLastError() for info.
-                return 1;
-            }
+            var boundPortTable = new HeapAllocHandle();
 
-            status = IphlpApi.InternalGetBoundTcpEndpointTable(ref boundPortTable, heap, flags: 0);
+            status = IphlpApi.InternalGetBoundTcpEndpointTable(ref boundPortTable, HeapAllocHandle.DangerousGetProcessHeap(), flags: 0);
 
             if (status == StatusCode.NoError)
             {
-                var numConnections = *(uint*)boundPortTable;
+                var numConnections = *(uint*)boundPortTable.DangerousGetHandle();
                 Console.WriteLine($"Found {numConnections} bound ports:");
 
                 // We need to keep a pointer to the start of the memory block so we can free it at the end
-                var currentRow = boundPortTable;
+                var currentRow = boundPortTable.DangerousGetHandle();
                 currentRow += sizeof(uint);
                 for (int i = 0; i < numConnections; i++)
                 {
@@ -129,7 +123,6 @@ namespace Iphlpapi
                 Console.Error.WriteLine("An unknown error occurred.");
             }
 
-            HeapApi.HeapFree(heap, flags: 0, memoryBlock: boundPortTable);
             if (status != StatusCode.NoError)
             {
                 return 1;
